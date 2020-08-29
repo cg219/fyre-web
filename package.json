@@ -1,11 +1,25 @@
 {
-  "name": "fyre-web",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC"
+    "name": "fyre-web",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "parcel src/index.html"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "firebase": "^7.19.1",
+        "vue": "^2.6.12",
+        "vue-hot-reload-api": "^2.3.4"
+    },
+    "devDependencies": {
+        "@vue/component-compiler-utils": "^3.2.0",
+        "parcel-bundler": "^1.12.4",
+        "vue-template-compiler": "^2.6.12"
+    },
+    "alias": {
+        "vue": "./node_modules/vue/dist/vue.common.js"
+    }
 }
