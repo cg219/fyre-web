@@ -18,8 +18,7 @@ module.exports = async context => {
 
             await db.doc(`cryptos/${crypto.id}`).set({ value: Number(refinedPrice) });
         });
-        res.send(response);
     } catch (error) {
-        res.status(404).send({ error });
+        console.error(error);
     }
 }
