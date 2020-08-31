@@ -19,6 +19,6 @@ module.exports = async context => {
             await db.doc(`stocks/${stock.id}`).set({ value: Number(refinedPrice) });
         });
     } catch (error) {
-        res.status(404).send({ error });
+        console.error(error);
     }
 }
