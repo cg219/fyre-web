@@ -3,7 +3,10 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const serviceAccount = require('./private/server-fyre.json');
 
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount), databaseURL: 'https://server-fyre.firebaseio.com' });
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: 'https://server-fyre.firebaseio.com'
+});
 
 exports.stocks = functions.https.onRequest(require('./services/api/stocks'));
 exports.cryptos = functions.https.onRequest(require('./services/api/cryptos'));
