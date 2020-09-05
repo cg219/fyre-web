@@ -9,23 +9,29 @@ const types = {
     PROPERTY: 'property'
 }
 
-const isValidType = type => Object.keys(types).find(key => types[key] === type) !== undefined;
-
 module.exports = async (req, res) => {
     const name = req.body.name;
     const type = req.body.type;
     const db = admin.firestore();
 
     res.set('Content-Type', 'application/json');
+    res.set('Access-Control-Allow-Origin', '*');
+
+    if (req.method == 'OPTIONS') {
+        res.set('Access-Control-Allow-Methods', '*');
+        res.set('Access-Control-Allow-Headers', 'Content-Type');
+        return res.send();
+    }
 
     if (req.method == 'POST') {
         if (!name || !type) return res.status(406).send({ error: 'Name or Type missing'});
-        if (!isValidType(type)) return res.status(406).send({ error: 'Invalid Type'});
+        if (!types[type.toUpperCase()]) return res.status(406).send({ error: 'Invalid Type'});
 
         const account = await db.collection('accounts').add({ name, type: type.toLowerCase(), assets: [] });
+        const data = await account.get();
 
         return res.send({
-            data: { id: account.id }
+            data: { ...data.data(), id: account.id }
         });
     }
 
@@ -53,7 +59,7 @@ module.exports = async (req, res) => {
         if (name) data.name = name;
         if (type) {
             data.type = type;
-            if (!isValidType(type)) return res.status(406).send({ error: 'Invalid Type'});
+            if (!types[type.toUpperCase()]) return res.status(406).send({ error: 'Invalid Type'});
         }
 
         await db.doc(`accounts/${id}`).update(data);
@@ -69,4 +75,6 @@ module.exports = async (req, res) => {
         await db.doc(`accounts/${id}`).delete();
         return res.send(200)
     }
+
+    return res.status(500).send({ error: 'Something Went Wrong' });
 }
