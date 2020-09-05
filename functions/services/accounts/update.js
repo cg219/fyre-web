@@ -5,9 +5,6 @@ module.exports = async (change, context) => {
     const before = change.before.exists && change.before.data();
     const id = context.params.id;
 
-    console.log('After: ', after);
-    console.log('Before: ', before);
-
     if (after && !before) {
         return await after.account.collection('assets').doc(change.after.id).set({ asset: change.after.ref });
     }
