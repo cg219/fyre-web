@@ -12,7 +12,7 @@ const types = {
 module.exports = async (req, res) => {
     const name = req.body.name;
     const type = req.body.type;
-    const db = admin.firestore();
+    const firestore = admin.firestore();
 
     res.set('Content-Type', 'application/json');
     res.set('Access-Control-Allow-Origin', '*');
@@ -27,24 +27,69 @@ module.exports = async (req, res) => {
         if (!name || !type) return res.status(406).send({ error: 'Name or Type missing'});
         if (!types[type.toUpperCase()]) return res.status(406).send({ error: 'Invalid Type'});
 
-        const account = await db.collection('accounts').add({ name, type: type.toLowerCase(), assets: [] });
+        const account = await firestore.collection('accounts').add({ name, type: type.toLowerCase() });
         const data = await account.get();
 
-        return res.send({
-            data: { ...data.data(), id: account.id }
-        });
+        return res.send({ data: { ...data.data(), id: account.id } });
     }
 
     if (req.method == 'GET') {
+        const full = !!req.query.full;
+        let assets;
+        let data;
+
         if (req.query.id) {
-            const account = await db.doc(`accounts/${req.query.id}`).get();
+            const account = await firestore.doc(`accounts/${req.query.id}`).get();
+            data = { ...account.data(), id: account.id }
 
-            return res.send({ data: { ...account.data(), id: account.id }})
+
+            if (full) {
+                const ref = await account.ref.collection('assets').get();
+                const promises = [];
+
+                ref.forEach(assetRef => promises.push(assetRef.data().asset.get()));
+
+                assets = await Promise.all(promises);
+                assets = assets.map(asset => {
+                    const { account, ...result } = asset.data();
+                    return result;
+                });
+
+                data = { ...data, assets }
+            }
+
+            return res.send({ data })
         } else {
-            const accounts = await db.collection('accounts').get();
-            const data = [];
+            const accounts = await firestore.collection('accounts').get();
 
-            accounts.forEach(account => data.push({ ...account.data(), id: account.id }));
+            data = [];
+
+            for (const account of accounts.docs) {
+                if (!full) {
+                    data.push({ ...account.data(), id: account.id })
+                } else {
+                    const ref = await account.ref.collection('assets').get();
+
+                    if (!ref.empty) {
+                        const promises = [];
+                        let rawAccount = { ...account.data(), id: account.id };
+
+                        ref.forEach(assetRef => promises.push(assetRef.data().asset.get()));
+
+                        assets = await Promise.all(promises);
+                        assets = assets.map(asset => {
+                            const { account, ...result } = asset.data();
+                            return result;
+                        });
+
+                        rawAccount
+
+                        data.push({ ...rawAccount, assets });
+                    } else {
+                        data.push({ ...account.data(), id: account.id });
+                    }
+                }
+            }
 
             return res.send({ data });
         }
@@ -55,15 +100,13 @@ module.exports = async (req, res) => {
         const data = {};
 
         if (!id) return res.status(406).send({ error: 'ID missing'});
-
         if (name) data.name = name;
         if (type) {
             data.type = type;
             if (!types[type.toUpperCase()]) return res.status(406).send({ error: 'Invalid Type'});
         }
 
-        await db.doc(`accounts/${id}`).update(data);
-
+        await firestore.doc(`accounts/${id}`).update(data);
         return res.send(200)
     }
 
@@ -72,7 +115,7 @@ module.exports = async (req, res) => {
 
         if (!id) return res.status(406).send({ error: 'ID missing'});
 
-        await db.doc(`accounts/${id}`).delete();
+        await firestore.doc(`accounts/${id}`).delete();
         return res.send(200)
     }
 

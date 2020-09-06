@@ -17,6 +17,23 @@
             </select>
             <button v-on:click='updateAccount'>Update Account</button>
         </div>
+        <div>
+            <h2>Add Asset</h2>
+            <input type='text' name='aseetName' placeholder="Name" v-model='assetModel.name' />
+            <input type='text' name='aseetAmount' placeholder="Amount" v-model='assetModel.amount' />
+            <input type='text' name='aseetCode' placeholder="Code" v-model='assetModel.code' />
+            <input type='text' name='aseetCost' placeholder="Cost" v-model='assetModel.cost' />
+            <select name="assetType" v-model='assetModel.type'>
+                <option v-for='type in assetTypes' :value='type'>{{type}}</option>
+            </select>
+            <select name="assetSector" v-model='assetModel.sector'>
+                <option v-for='sector in sectors' :value='sector'>{{sector}}</option>
+            </select>
+            <select name="assetAccount" v-model='assetModel.account'>
+                <option v-for='account in accounts' :value='account.id'>{{account.name}}</option>
+            </select>
+            <button v-on:click='addAsset'>Add Asset</button>
+        </div>
         <ul>
             <li v-for='account in accounts' :data-id='account.id'>
                 <span v-on:click='setEditAccount(account)'>{{account.name}}</span>
@@ -43,6 +60,17 @@
                     type: 'savings',
                     id: ''
                 },
+                assetModel: {
+                    name: '',
+                    type: 'cash',
+                    code: '',
+                    amount: '',
+                    cost: '',
+                    sector: 'none',
+                    account: ''
+                },
+                assetTypes: ['cash', 'stock', 'crypto'],
+                sectors: ['none', 'financials', 'utilities', 'consumer discretionary', 'consumer staples', 'energy', 'health', 'industrials', 'technology', 'telecom', 'materials', 'real estate', 'other'],
                 accountTypes: ['savings', 'checkings', 'retirement', 'brokerage', 'digital', 'lender', 'property']
             }
         },
@@ -112,6 +140,21 @@
                 try {
                     let { data } = await axios(options);
 
+                    this.getAccounts();
+                } catch (error) { console.error(error) }
+            },
+            async addAsset() {
+                console.log(this.assetModel);
+                let options = {
+                    url: 'http://localhost:5001/server-fyre/us-central1/assets',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    data: { ...this.assetModel }
+                }
+
+                try {
+                    let { data } = await axios(options);
+                    console.log(data);
                     this.getAccounts();
                 } catch (error) { console.error(error) }
             }
