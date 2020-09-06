@@ -20,29 +20,38 @@ const sectors = {
     NONE: 'none'
 }
 
+const checkSectors = sector => Object.values(sectors).includes(sector);
+
 module.exports = async (req, res) => {
     const name = req.body.name;
     const type = req.body.type && req.body.type.toUpperCase();
     const code = req.body.code;
     const cost = req.body.cost;
     const amount = req.body.amount;
-    const sector = req.body.sector && req.body.sector.toUpperCase();
+    const sector = req.body.sector && req.body.sector.toLowerCase();
     const accountID = req.body.account;
 
     const db = admin.firestore();
 
     res.set('Content-Type', 'application/json');
+    res.set('Access-Control-Allow-Origin', '*');
+
+    if (req.method == 'OPTIONS') {
+        res.set('Access-Control-Allow-Methods', '*');
+        res.set('Access-Control-Allow-Headers', 'Content-Type');
+        return res.send();
+    }
 
     if (req.method == 'POST') {
         if (!name || !type || !code || !cost || !amount || !sector || !accountID) return res.status(406).send({ error: 'Missing Parameters'});
         if (!types[type]) return res.status(406).send({ error: 'Invalid Type'});
-        if (!sectors[sector]) return res.status(406).send({ error: 'Invalid Sector'});
+        if (!checkSectors(sector)) return res.status(406).send({ error: 'Invalid Sector'});
 
         const accountRef  = db.doc(`accounts/${accountID}`);
         const account = await accountRef.get();
 
         if (!account.exists) return res.status(406).send({ error: 'Invalid Account ID'});
-        const asset = { name, code, cost, amount, account: accountRef, sector: sectors[sector], type: types[type] };
+        const asset = { name, code, cost, amount, account: accountRef, sector, type };
         console.log(asset);
         const assetRef = await db.collection('assets').add(asset);
 
