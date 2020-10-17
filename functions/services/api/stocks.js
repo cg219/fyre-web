@@ -7,7 +7,7 @@ const database = admin.database();
 const api = axios.create({ baseURL: "https://ycharts.com/companies/" });
 
 module.exports = async (req, res) => {
-    try {git status
+    try {
 
         const symbol = req.query.symbol.toUpperCase();
         const ref = await firestore.doc(`stocks/${symbol}`).get();

@@ -3,7 +3,7 @@ const admin = require("firebase-admin");
 const axios = require("axios");
 const cheerio = require("cheerio");
 const firestore = admin.firestore();
-const database = admin.adatabase();
+const database = admin.database();
 const api = axios.create({ baseURL: "https://ycharts.com/companies/" });
 
 module.exports = async context => {
