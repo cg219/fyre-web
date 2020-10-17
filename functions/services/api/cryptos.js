@@ -2,13 +2,14 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
 const cheerio = require("cheerio");
-const db = admin.firestore();
+const firestore = admin.firestore();
+const database = admin.database();
 const api = axios.create({ baseURL: "https://coinmarketcap.com/currencies/" });
 
 module.exports = async (req, res) => {
     try {
         const symbol = req.query.symbol.toUpperCase();
-        const ref = await db.doc(`cryptos/${symbol}`).get();
+        const ref = await firestore.doc(`cryptos/${symbol}`).get();
         let response = { data: { symbol } };
 
         if (ref.exists) {
@@ -26,7 +27,7 @@ module.exports = async (req, res) => {
 
             response.data = { ...response.data, price: Number(refinedPrice) };
 
-            await db.doc(`cryptos/${symbol}`).set({ value: Number(refinedPrice) });
+            await firestore.doc(`cryptos/${symbol}`).set({ value: Number(refinedPrice) });
         }
 
         res.send(response);
