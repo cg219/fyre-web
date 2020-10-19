@@ -8,7 +8,7 @@
         "dev": "parcel src/index.html"
     },
     "author": "",
-    "license": "ISC",
+    "license": "MIT",
     "dependencies": {
         "axios": "^0.20.0",
         "firebase": "^7.19.1",
