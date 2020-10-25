@@ -1,4 +1,17 @@
 const cheerio = require('cheerio');
+const admin = require('firebase-admin');
+const { vow } = require('batboy.mente');
+
+const createToken = async uid => {
+    const [token, tokenError] = await vow(admin.auth().createCustomToken(uid));
+
+    if (tokenError) {
+        console.error(tokenError);
+        return null;
+    }
+
+    return token;
+}
 
 const refine = (data, type) => {
     let refinedPrice;
@@ -19,5 +32,6 @@ const refine = (data, type) => {
 }
 
 module.exports = {
-    refine
+    refine,
+    createToken
 }
