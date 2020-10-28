@@ -31,7 +31,14 @@ const refine = (data, type) => {
     return refinedPrice;
 }
 
+const checkBody = (req, param) => req.body && req.body[param];
+const checkQuery = (req, param) => req.query && req.query[param];
+const checkParam = (req, param) => checkBody(req, param) || checkQuery(req, param);
+
 module.exports = {
     refine,
-    createToken
+    createToken,
+    checkBody,
+    checkQuery,
+    checkParam
 }

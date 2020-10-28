@@ -1,6 +1,7 @@
 const stocks = require('./stocks');
 const cryptos = require('./cryptos');
 const assets = require('./assets');
+const accounts = require('./accounts');
 
 const validate = req => {
     const symbol = req.query.symbol;
@@ -23,6 +24,10 @@ module.exports = async (req, res) => {
 
         case '/cryptos':
             return cryptos(req, res);
+            break;
+
+        case '/accounts':
+            return accounts(req, res);
             break;
 
         case '/assets':
