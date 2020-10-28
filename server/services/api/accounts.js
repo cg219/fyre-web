@@ -27,71 +27,47 @@ module.exports = async (req, res) => {
         if (!name || !type) return res.status(406).send({ error: 'Name or Type missing'});
         if (!types[type.toUpperCase()]) return res.status(406).send({ error: 'Invalid Type'});
 
-        const account = await firestore.collection('accounts').add({ name, type: type.toLowerCase() });
-        const data = await account.get();
+        const account = await firestore.collection('accounts').add({ name, type: type.toLowerCase(), assets: [] });
+        const snap = await account.get();
 
-        return res.send({ data: { ...data.data(), id: account.id } });
+        if (snap.exists) {
+            return res.send({ success: true, data: { ...snap.data(), id: account.id } });
+        }
+
+        return res.send({ success: false, code: 'api/server-error' });
     }
 
     if (req.method == 'GET') {
-        const full = !!req.query.full;
-        let assets;
-        let data;
-
         if (req.query.id) {
             const account = await firestore.doc(`accounts/${req.query.id}`).get();
-            data = { ...account.data(), id: account.id }
+            const response = { success: true };
 
+            if (!account.exists) {
+                response.success = false;
+                response.code = 'api/not-found';
 
-            if (full) {
-                const ref = await account.ref.collection('assets').get();
-                const promises = [];
-
-                ref.forEach(assetRef => promises.push(assetRef.data().asset.get()));
-
-                assets = await Promise.all(promises);
-                assets = assets.map(asset => {
-                    const { account, ...result } = asset.data();
-                    return result;
-                });
-
-                data = { ...data, assets }
+                return res.send(response)
             }
 
-            return res.send({ data })
+            response.data = { ...account.data(), id: account.id }
+
+            return res.send(response)
         } else {
             const accounts = await firestore.collection('accounts').get();
+            const response = { success: true };
 
-            data = [];
+            if (accounts.empty) {
+                response.success = false;
+                response.code = 'api/not-found';
 
-            for (const account of accounts.docs) {
-                if (!full) {
-                    data.push({ ...account.data(), id: account.id })
-                } else {
-                    const ref = await account.ref.collection('assets').get();
-
-                    if (!ref.empty) {
-                        const promises = [];
-                        let rawAccount = { ...account.data(), id: account.id };
-
-                        ref.forEach(assetRef => promises.push(assetRef.data().asset.get()));
-
-                        assets = await Promise.all(promises);
-                        assets = assets.map(asset => {
-                            const { account, ...result } = asset.data();
-                            return result;
-                        });
-
-                        rawAccount
-
-                        data.push({ ...rawAccount, assets });
-                    } else {
-                        data.push({ ...account.data(), id: account.id });
-                    }
-                }
+                return res.send(response)
             }
 
-            return res.send({ data });
+            response.data = accounts.docs.map(account => {
+                return { ...account.data(), id: account.id }
+            })
+
+            return res.send(response)
         }
     }
 
@@ -107,7 +83,7 @@ module.exports = async (req, res) => {
         }
 
         await firestore.doc(`accounts/${id}`).update(data);
-        return res.send(200)
+        return res.send({ success: true })
     }
 
     if (req.method == 'DELETE') {
@@ -116,7 +92,7 @@ module.exports = async (req, res) => {
         if (!id) return res.status(406).send({ error: 'ID missing'});
 
         await firestore.doc(`accounts/${id}`).delete();
-        return res.send(200)
+        return res.send({ success: true })
     }
 
     return res.status(500).send({ error: 'Something Went Wrong' });

@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const { checkParam } = require('./../../helpers');
 const types = {
     STOCK: 'stock',
     CASH: 'cash',
@@ -21,17 +22,17 @@ const sectors = {
 }
 
 const checkSectors = sector => Object.values(sectors).includes(sector);
+const checkTypes = type => Object.values(types).includes(type);
 
 module.exports = async (req, res) => {
-    const name = req.body.name;
-    const type = req.body.type && req.body.type.toUpperCase();
-    const code = req.body.code;
-    const cost = req.body.cost;
-    const amount = req.body.amount;
-    const sector = req.body.sector && req.body.sector.toLowerCase();
-    const accountID = req.body.account;
-
-    const db = admin.firestore();
+    const name = checkParam(req, 'name');
+    const type = checkParam(req, 'type');
+    const code = checkParam(req, 'code');
+    const cost = checkParam(req, 'cost');
+    const amount = checkParam(req, 'amount');
+    const sector = checkParam(req, 'sector');
+    const accountID = checkParam(req, 'account');
+    const firestore = admin.firestore();
 
     res.set('Content-Type', 'application/json');
     res.set('Access-Control-Allow-Origin', '*');
@@ -44,67 +45,93 @@ module.exports = async (req, res) => {
 
     if (req.method == 'POST') {
         if (!name || !type || !code || !cost || !amount || !sector || !accountID) return res.status(406).send({ error: 'Missing Parameters'});
-        if (!types[type]) return res.status(406).send({ error: 'Invalid Type'});
-        if (!checkSectors(sector)) return res.status(406).send({ error: 'Invalid Sector'});
+        if (!checkTypes(type.toLowerCase())) return res.status(406).send({ error: 'Invalid Type'});
+        if (!checkSectors(sector.toLowerCase())) return res.status(406).send({ error: 'Invalid Sector'});
 
-        const accountRef  = db.doc(`accounts/${accountID}`);
-        const account = await accountRef.get();
+        const ref = firestore.doc(`accounts/${accountID}`);
+        const snap = await ref.get();
 
-        if (!account.exists) return res.status(406).send({ error: 'Invalid Account ID'});
-        const asset = { name, code, cost, amount, account: accountRef, sector, type };
-        console.log(asset);
-        const assetRef = await db.collection('assets').add(asset);
+        if (!snap.exists) return res.status(406).send({ error: 'Invalid Account ID'});
+        const account = snap.data();
+        const asset = { name, code, cost, amount, sector, type };
 
-        return res.send({
-            data: { id: assetRef.id }
-        });
+        account.assets.push(asset);
+        await ref.set(account, { merge: true });
+
+        return res.send({ success: true, data: { ...asset, accountID: snap.id }});
     }
 
     if (req.method == 'GET') {
-        if (req.query.id) {
-            const assetRef = await db.doc(`assets/${req.query.id}`).get();
-            const asset = assetRef.data();
-            const accountRef = await asset.account.get();
+        if (code) {
+            if (!accountID) return res.status(406).send({ error: 'Missing Account ID'});
 
-            return res.send({ data: { ...asset, id: assetRef.id, account: accountRef.id }})
+            const ref = firestore.doc(`accounts/${accountID}`);
+            const snap = await ref.get();
+
+            if (!snap.exists) return res.send({ success: false, code: 'api/not-found' });
+
+            const data = snap.data();
+            const asset = data.assets && data.assets.find(asset => asset.code.toLowerCase() === code.toLowerCase());
+
+            if (!asset) return res.send({ success: false, code: 'api/not-found' });
+
+            return res.send({ success: true, data: { ...asset, account: accountID }});
         } else {
-            const accounts = await db.collection('assets').get();
-            const data = [];
-            let i = 0;
-            const len = accounts.size;
+            if (!accountID) return res.status(406).send({ error: 'Missing Account ID'});
 
-            for (i; i < len; i++) {
-                const snap = accounts.docs[i];
-                const asset = snap.data();
-                const accountRef = await asset.account.get();
+            const ref = firestore.doc(`accounts/${accountID}`);
+            const snap = await ref.get();
 
-                data.push({ ...asset, id: snap.id, account: accountRef.id })
-            }
+            if (!snap.exists) return res.send({ success: false, code: 'api/not-found' });
 
-            return res.send({ data });
+            const data = snap.data();
+
+            return res.send({ success: true, data: { assets: data.assets, account: accountID } });
         }
     }
 
     if (req.method == 'PUT') {
-        const id = req.body.id;
-        const data = {};
+        if (!code || !accountID) return res.status(406).send({ error: 'Missing Parameters'});
 
-        if (!id) return res.status(406).send({ error: 'ID missing'});
+        const update = {};
 
-        if (amount) data.amount = amount;
-        if (cost) data.cost = cost;
+        if (amount) update.amount = amount;
+        if (cost) update.cost = cost;
 
-        await db.doc(`assets/${id}`).update(data);
+        const ref = firestore.doc(`accounts/${accountID}`);
+        const snap = await ref.get();
 
-        return res.send(200)
+        if (!snap.exists) return res.send({ success: false, code: 'api/not-found' });
+
+        const data = snap.data();
+        const index = data.assets && data.assets.findIndex(asset => asset.code.toLowerCase() === code.toLowerCase());
+
+        if (index === -1) return res.send({ success: false, code: 'api/not-found' });
+
+        const updatedAsset = {...data.assets[index], ...update};
+        const newData = { ...data, assets: [...data.assets.slice(0, index), updatedAsset, ...data.assets.slice(index + 1)] }
+
+        await firestore.doc(`accounts/${accountID}`).update(newData);
+
+        return res.send({ success: true, data: { ...updatedAsset, account: accountID }});
     }
 
     if (req.method == 'DELETE') {
-        const id = req.body.id;
+        if (!code || !accountID) return res.status(406).send({ error: 'Missing Parameters'});
 
-        if (!id) return res.status(406).send({ error: 'ID missing'});
+        const ref = firestore.doc(`accounts/${accountID}`);
+        const snap = await ref.get();
 
-        await db.doc(`assets/${id}`).delete();
-        return res.send(200)
+        if (!snap.exists) return res.send({ success: false, code: 'api/not-found' });
+
+        const data = snap.data();
+        const index = data.assets && data.assets.findIndex(asset => asset.code.toLowerCase() === code.toLowerCase());
+
+        if (index === -1) return res.send({ success: false, code: 'api/not-found' });
+        const newData = { ...data, assets: [...data.assets.slice(0, index), ...data.assets.slice(index + 1)] }
+
+        await firestore.doc(`accounts/${accountID}`).update(newData);
+
+        return res.send({ success: true })
     }
 }
