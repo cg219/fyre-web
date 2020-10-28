@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
         if (!name || !type) return res.status(406).send({ error: 'Name or Type missing'});
         if (!types[type.toUpperCase()]) return res.status(406).send({ error: 'Invalid Type'});
 
-        const account = await firestore.collection('accounts').add({ name, type: type.toLowerCase(), assets: [] });
+        const account = await firestore.collection('accounts').add({ name, type: type.toLowerCase(), assets: {} });
         const snap = await account.get();
 
         if (snap.exists) {
