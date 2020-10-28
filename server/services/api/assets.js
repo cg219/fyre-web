@@ -55,7 +55,7 @@ module.exports = async (req, res) => {
         const account = snap.data();
         const asset = { name, code, cost, amount, sector, type };
 
-        account.assets.push(asset);
+        account.assets[code.toLowerCase()] = asset;
         await ref.set(account, { merge: true });
 
         return res.send({ success: true, data: { ...asset, accountID: snap.id }});
@@ -71,7 +71,7 @@ module.exports = async (req, res) => {
             if (!snap.exists) return res.send({ success: false, code: 'api/not-found' });
 
             const data = snap.data();
-            const asset = data.assets && data.assets.find(asset => asset.code.toLowerCase() === code.toLowerCase());
+            const asset = data.assets[code.toLowerCase()];
 
             if (!asset) return res.send({ success: false, code: 'api/not-found' });
 
@@ -104,12 +104,12 @@ module.exports = async (req, res) => {
         if (!snap.exists) return res.send({ success: false, code: 'api/not-found' });
 
         const data = snap.data();
-        const index = data.assets && data.assets.findIndex(asset => asset.code.toLowerCase() === code.toLowerCase());
+        const asset = data.assets[code.toLowerCase()];
 
-        if (index === -1) return res.send({ success: false, code: 'api/not-found' });
+        if (!asset) return res.send({ success: false, code: 'api/not-found' });
 
-        const updatedAsset = {...data.assets[index], ...update};
-        const newData = { ...data, assets: [...data.assets.slice(0, index), updatedAsset, ...data.assets.slice(index + 1)] }
+        const updatedAsset = {...asset, ...update};
+        const newData = { ...data, assets: {...data.assets, [code.toLowerCase()]: updatedAsset } }
 
         await firestore.doc(`accounts/${accountID}`).update(newData);
 
@@ -125,10 +125,12 @@ module.exports = async (req, res) => {
         if (!snap.exists) return res.send({ success: false, code: 'api/not-found' });
 
         const data = snap.data();
-        const index = data.assets && data.assets.findIndex(asset => asset.code.toLowerCase() === code.toLowerCase());
+        const asset = data.assets[code.toLowerCase()];
 
-        if (index === -1) return res.send({ success: false, code: 'api/not-found' });
-        const newData = { ...data, assets: [...data.assets.slice(0, index), ...data.assets.slice(index + 1)] }
+        if (!asset) return res.send({ success: false, code: 'api/not-found' });
+
+        const { [code.toLowerCase()]: deleted, ...updatedAssets } = data.assets;
+        const newData = { ...data, assets: updatedAssets }
 
         await firestore.doc(`accounts/${accountID}`).update(newData);
 
