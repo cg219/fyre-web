@@ -3,7 +3,7 @@ const cryptos = require('./cryptos');
 const assets = require('./assets');
 const accounts = require('./accounts');
 
-const validate = req => {
+function validate(req) {
     const symbol = req.query.symbol;
 
     if (typeof symbol !== 'string') return null;

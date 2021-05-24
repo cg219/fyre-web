@@ -1,7 +1,7 @@
 const signup = require('./signup');
 const login = require('./login');
 
-const validate = req => {
+function validate(req) {
     const symbol = req.query.symbol;
 
     if (typeof symbol !== 'string') return null;
