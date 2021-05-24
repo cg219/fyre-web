@@ -16,9 +16,27 @@
   "functions": {
     "source": "./server"
   },
+  "firestore": {
+    "rules": "./server/rules/firestore.rules"
+  },
+  "database": {
+    "rules": "./server/rules/database.rules.json"
+  },
   "emulators": {
     "functions": {
       "port": 5001
+    },
+    "firestore": {
+      "enabled": true
+    },
+    "database": {
+      "enabled": true
+    },
+    "pubsub": {
+      "enabled": true
+    },
+    "auth": {
+      "enabled": true
     },
     "ui": {
       "enabled": true

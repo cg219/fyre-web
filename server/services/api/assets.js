@@ -21,8 +21,13 @@ const sectors = {
     NONE: 'none'
 }
 
-const checkSectors = sector => Object.values(sectors).includes(sector);
-const checkTypes = type => Object.values(types).includes(type);
+function checkSectors(sector) {
+    return Object.values(sectors).includes(sector);
+}
+
+function checkTypes(type) {
+    return Object.values(types).includes(type);
+}
 
 module.exports = async (req, res) => {
     const name = checkParam(req, 'name');
@@ -57,7 +62,6 @@ module.exports = async (req, res) => {
 
         account.assets[code.toLowerCase()] = asset;
         await ref.set(account, { merge: true });
-
         return res.send({ success: true, data: { ...asset, accountID: snap.id }});
     }
 
@@ -112,7 +116,6 @@ module.exports = async (req, res) => {
         const newData = { ...data, assets: {...data.assets, [code.toLowerCase()]: updatedAsset } }
 
         await firestore.doc(`accounts/${accountID}`).update(newData);
-
         return res.send({ success: true, data: { ...updatedAsset, account: accountID }});
     }
 
@@ -133,7 +136,6 @@ module.exports = async (req, res) => {
         const newData = { ...data, assets: updatedAssets }
 
         await firestore.doc(`accounts/${accountID}`).update(newData);
-
         return res.send({ success: true })
     }
 }
