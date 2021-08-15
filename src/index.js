@@ -1,8 +1,9 @@
-const Vue = require('vue');
-const App = require('./components/App');
+const m = require('mithril');
 
-new Vue({
-    el: '#app',
-    render: render => render(App)
-});
+var Hello = {
+    view() {
+        return m('h1', { class: 'test'}, 'Hello There!')
+    }
+}
 
+m.mount(document.querySelector('#app'), Hello);

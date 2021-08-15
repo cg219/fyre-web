@@ -68,3 +68,4 @@ node_modules/
 private/
 dist/
 .cache/
+.DS_Store

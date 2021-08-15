@@ -40,6 +40,9 @@
     },
     "ui": {
       "enabled": true
+    },
+    "hosting": {
+      "enabled": false
     }
   }
 }
