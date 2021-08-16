@@ -1,9 +1,13 @@
 const m = require('mithril');
+const Home = require('./home');
+const Dashboard = require('./dashboard');
+const { initializeApp } = require('firebase/app');
+const firebaseConfig = require('./../private/firebaseConfig');
 
-var Hello = {
-    view() {
-        return m('h1', { class: 'test'}, 'Hello There!')
-    }
-}
+initializeApp(firebaseConfig);
 
-m.mount(document.querySelector('#app'), Hello);
+m.route.prefix = '';
+m.route(document.querySelector('#app'), '/', {
+    '/': Home,
+    '/dashboard': Dashboard
+});

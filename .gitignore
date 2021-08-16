@@ -65,7 +65,7 @@ node_modules/
 # dotenv environment variables file
 .env
 
-private/
+private/firebaseConfig.js
 dist/
 .cache/
 .DS_Store
