@@ -66,6 +66,7 @@ node_modules/
 .env
 
 private/firebaseConfig.js
+server/private
 dist/
 .cache/
 .DS_Store
