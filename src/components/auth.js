@@ -1,14 +1,10 @@
-const m = require('mithril');
-const { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } = require('firebase/auth');
-const { vow } = require('batboy.mente');
+import m from 'mithril';
+import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { vow } from 'batboy.mente';
 
 var Auth = {
     email: '',
-    test() {
-        console.log(localStorage);
-        console.log(location);
-        console.log(Auth);
-    },
     async sendMagicLink(url) {
         var settings = {
             handleCodeInApp: true,
@@ -34,14 +30,14 @@ var Auth = {
 
             if (error) return new Error(error);
 
-            return {
-                user: success.user,
-                extra: success.additionalUserInfo
-            }
+            let functions = getFunctions();
+            let getUser = httpsCallable(functions, 'getUser');
+
+            return await getUser();
         }
 
         return null;
     }
 }
 
-module.exports = Auth;
+export default Auth;

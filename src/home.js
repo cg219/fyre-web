@@ -1,7 +1,7 @@
-const m = require('mithril');
-const Login = require('./components/login');
+import m from 'mithril';
+import Login from './components/login';
 
-module.exports = {
+export default {
     view() {
         return m('div.home', m(Login))
     }

@@ -1,6 +1,6 @@
-const m = require('mithril');
+import m from 'mithril';
 
-module.exports = {
+export default {
     view() {
         return m('div.dashboard', [
             m('h1', 'Dashboard')

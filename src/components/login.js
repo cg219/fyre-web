@@ -1,6 +1,6 @@
-const m = require('mithril');
-const Auth = require('./auth');
-const { vow } = require('batboy.mente');
+import m from 'mithril';
+import Auth from './auth';
+import { vow } from 'batboy.mente';
 
 async function sendMagicLink() {
     await Auth.sendMagicLink(location.href);
@@ -10,7 +10,7 @@ function onInput(event) {
     Auth.email = event.target.value;
 }
 
-module.exports = {
+export default {
     async oninit(vnode) {
         var [user, error] = await vow(Auth.login());
 
@@ -20,8 +20,9 @@ module.exports = {
 
         if (user) {
             console.log(user);
+            m.route.set('/dashboard');
         } else {
-            Auth.test();
+            // Auth.test();
         }
     },
     view() {
