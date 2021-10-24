@@ -6,8 +6,14 @@ async function sendMagicLink() {
     await Auth.sendMagicLink(location.href);
 }
 
-function onInput(event) {
-    Auth.email = event.target.value;
+async function createUser() {
+    await Auth.createUser(location.href);
+}
+
+function onInput(field) {
+    return function callback(event) {
+        Auth[field] = event.target.value;
+    }
 }
 
 export default {
@@ -28,11 +34,12 @@ export default {
     view() {
         return m('div', [
             m('.signup', [
-                m('input', { type: 'text', placeholder: 'Enter Email', value: Auth.email, oninput: onInput }),
-                m('button', { class: 'signup', onclick: sendMagicLink }, 'Sign Up w/ Magic Link')
+                m('input', { type: 'text', placeholder: 'Enter Name', value: Auth.name, oninput: onInput('name') }),
+                m('input', { type: 'text', placeholder: 'Enter Email', value: Auth.email, oninput: onInput('signupEmail') }),
+                m('button', { class: 'signup', onclick: createUser }, 'Sign Up w/ Magic Link')
             ]),
             m('.login', [
-                m('input', { type: 'text', placeholder: 'Enter Email', value: Auth.email, oninput: onInput }),
+                m('input', { type: 'text', placeholder: 'Enter Email', value: Auth.email, oninput: onInput('loginEmail') }),
                 m('button', { class: 'login', onclick: sendMagicLink }, 'Login w/ Magic Link')
             ])
         ])

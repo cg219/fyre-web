@@ -10,13 +10,20 @@ export const getUser = async function(data, context) {
     throw new HttpsError('not-found', 'User not found');
 }
 
-export const createUser = async function(data, context) {
+export const createUser = async function({ name, email }, context) {
+    if (!name) return new HttpsError('invalid-argument', 'Missing name');
+    if (!email) return new HttpsError('invalid-argument', 'Missing email');
+
     let user = await admin.firestore().doc(`users/${context.auth.uid}`).get();
 
     if (user.exists) throw new HttpsError('already-exists', 'User already exists');
 
     await admin.firestore().doc(`users/${context.auth.uid}`).set({
-        created: admin.firestore.Timestamp.now()
+        created: admin.firestore.Timestamp.now(),
+        modified: admin.firestore.Timestamp.now(),
+        email,
+        name,
+        confirmed: false
     }, { merge: true });
 
     let newUser = await admin.firestore().doc(`users/${context.auth.uid}`).get();
