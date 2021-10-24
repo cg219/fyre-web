@@ -31,9 +31,12 @@ var Auth = {
             if (error) return new Error(error);
 
             let functions = getFunctions();
-            let getUser = httpsCallable(functions, 'getUser');
+            let getUser = httpsCallable(functions, 'user-get');
+            let [user, userError] = await vow(getUser());
 
-            return await getUser();
+            if (userError) throw new Error(userError);
+
+            return user;
         }
 
         return null;

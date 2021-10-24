@@ -11,8 +11,6 @@ const app = initializeApp(firebaseConfig);
 connectAuthEmulator(getAuth(app), 'http://localhost:9099');
 connectFunctionsEmulator(getFunctions(app), 'localhost', 5001);
 
-console.log(getFunctions(app));
-
 m.route.prefix = '';
 m.route(document.querySelector('#app'), '/', {
     '/': Home,

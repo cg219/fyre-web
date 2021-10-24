@@ -26,9 +26,15 @@ export default {
         }
     },
     view() {
-        return m('.login', [
-            m('input', { type: 'text', placeholder: 'Enter Email', value: Auth.email, oninput: onInput }),
-            m('button', { class: 'login', onclick: sendMagicLink }, 'Login w/ Magic Link')
+        return m('div', [
+            m('.signup', [
+                m('input', { type: 'text', placeholder: 'Enter Email', value: Auth.email, oninput: onInput }),
+                m('button', { class: 'signup', onclick: sendMagicLink }, 'Sign Up w/ Magic Link')
+            ]),
+            m('.login', [
+                m('input', { type: 'text', placeholder: 'Enter Email', value: Auth.email, oninput: onInput }),
+                m('button', { class: 'login', onclick: sendMagicLink }, 'Login w/ Magic Link')
+            ])
         ])
     }
 }
